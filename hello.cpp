@@ -1,20 +1,20 @@
 #include <iostream>
 using namespace std;
 #include <string>
-
+#include <vector>
 
 struct User {
 
 	string username;
 	string password;
-	string role;
+	vector<string> permissions;
 	User* next;	
 	
 
-	User(const string& u, const string & p, const string& r = "viewer"){
+	User(const string& u, const string & p, const vector<string>& perms = {"viewer"}){
 		username = u;
 		password = p;
-		role = r;
+		permissions = perms;
 		next = nullptr;
 
 	};
@@ -22,10 +22,10 @@ struct User {
 };
 
 
-bool insertUser(User*& head, const string& username, const string& password, const string& role = "viewer");
+bool insertUser(User*& head, const string& username, const string& password, const vector<string>& permissions = {"viewer"});
 void printUsers(User*& head);
 User* findUser(User* head, const string& username);
-bool authorize(User* head, const string& username, const string& role);
+bool authorize(User* head, const string& username, const string& permission);
 
 
 int main(){
@@ -34,9 +34,9 @@ int main(){
 	
 	User* head = nullptr; 
 
-	insertUser(head, "Carl", "abcde", "viewer");
-	insertUser(head, "Bob", "qwerty", "viewer");
-	insertUser(head, "Mike", "banana123", "viewer");
+	insertUser(head, "Carl", "abcde",{ "viewer"});
+	insertUser(head, "Bob", "qwerty", {"viewer", "editor"});
+	insertUser(head, "Mike", "banana123", {"viewer", "editor", "delete"});
 
 	printUsers(head);
 
@@ -56,9 +56,9 @@ void printUsers(User*& head){
 
 
 
-bool insertUser(User*& head, const string& username, const string& password, const string& role){
+bool insertUser(User*& head, const string& username, const string& password, const vector<string>& permissions){
 
-	User* newUser = new User(username, password, role);
+	User* newUser = new User(username, password, permissions);
 	User* current = head;
 
 
@@ -72,7 +72,7 @@ bool insertUser(User*& head, const string& username, const string& password, con
 			return false;
 		}
 		if(current->next == nullptr){
-			current->next = new User(username, password, role);	
+			current->next = new User(username, password, permissions);	
 			return true;
 		}
 	current = current->next;
@@ -97,7 +97,7 @@ return nullptr;
 }
 
 
-bool authorize(User* head, const string& username, const string& role){
+bool authorize(User* head, const string& username, const string& permission){
 
 	User* current = findUser(head, username);
 	
@@ -105,8 +105,10 @@ bool authorize(User* head, const string& username, const string& role){
 		return false;
 	}
 
-	if(current->role == "admin"|| current->role == "editor" || current->role == "viewer"){
-		return true;
+	for(const string& perm : current->permissions){	
+		if(perm == permission){
+			return true;
+		}
 	}
 
 return false;
